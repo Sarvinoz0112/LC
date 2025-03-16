@@ -1,11 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.validators import RegexValidator
-
 from courses_app.models import Course
 
 
 class UserManager(BaseUserManager):
+    """
+    Foydalanuvchilarni yaratish uchun maxsus manager
+    """
+
     def create_user(self, phone, password=None, **extra_fields):
         """
         Oddiy foydalanuvchi yaratish
@@ -23,10 +26,12 @@ class UserManager(BaseUserManager):
         """
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser is_staff=True bo‘lishi kerak.')
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser is_superuser=True bo‘lishi kerak.')
+
         return self.create_user(phone, password, **extra_fields)
 
 
@@ -34,13 +39,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     """
     Tizim foydalanuvchilari uchun model
     """
-    phone_regex = RegexValidator(regex=r'^\+998\d{9}$',
-                                 message="Telefon raqami '+998901234567' formatida bo‘lishi kerak.")
+    phone_regex = RegexValidator(
+        regex=r'^\+998\d{9}$',
+        message="Telefon raqami '+998901234567' formatida bo‘lishi kerak."
+    )
     phone = models.CharField(validators=[phone_regex], max_length=13, unique=True)
     full_name = models.CharField(max_length=50, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    is_admin = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
     is_student = models.BooleanField(default=False)
     is_teacher = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
@@ -56,15 +63,17 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.full_name if self.full_name else self.phone
 
     def has_perm(self, perm, obj=None):
-        return self.is_admin
+        return self.is_superuser
 
     def has_module_perms(self, app_label):
-        return self.is_admin
+        return self.is_superuser
 
 
 class Department(models.Model):
+    """
+    Kafedra (bo‘lim) modeli
+    """
     title = models.CharField(max_length=50)
-    is_active = models.BooleanField(default=True)
     descriptions = models.CharField(max_length=500, null=True, blank=True)
 
     def __str__(self):
@@ -91,7 +100,8 @@ class Student(models.Model):
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     group = models.ManyToManyField("courses_app.Group", related_name="group_students")
-    students = models.ManyToManyField("users_app.Student", related_name="course_students")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="course_students", null=True,
+                               blank=True)
     is_line = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

@@ -1,21 +1,42 @@
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
-from .models import *
+from .models import User, Teacher, Student, Parents
 
 
 class UserSerializer(serializers.ModelSerializer):
     """
     Foydalanuvchilar ma'lumotlarini serializer qilish uchun ishlatiladi
     """
+
     class Meta:
         model = User
         fields = ("id", "password", "full_name", "phone")
+        extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
         """
         Yangi foydalanuvchi yaratishda parolni xavfsiz qilib saqlash
         """
-        validated_data['password'] = make_password(validated_data['password'])
+        if 'password' in validated_data:
+            validated_data['password'] = make_password(validated_data['password'])
+        return super().create(validated_data)
+
+
+class SuperUserSerializer(serializers.ModelSerializer):
+    """
+    Superuser yaratish uchun serializer
+    """
+
+    class Meta:
+        model = User
+        fields = ("id", "password", "full_name", "phone", "is_staff", "is_superuser")
+        extra_kwargs = {"password": {"write_only": True}}
+
+    def create(self, validated_data):
+        if 'password' in validated_data:
+            validated_data['password'] = make_password(validated_data['password'])
+        validated_data['is_staff'] = True
+        validated_data['is_superuser'] = True
         return super().create(validated_data)
 
 
@@ -23,38 +44,44 @@ class TeacherSerializer(serializers.ModelSerializer):
     """
     O‘qituvchi ma'lumotlarini serializer qilish uchun ishlatiladi
     """
+    full_name = serializers.CharField(source="user.full_name", read_only=True)
+    phone = serializers.CharField(source="user.phone", read_only=True)
+
     class Meta:
         model = Teacher
-        fields = ('user', 'course', 'created', 'updated', 'descriptions')
+        fields = ("id", "user", "full_name", "phone", "course", "created", "updated", "descriptions")
 
 
 class StudentSerializer(serializers.ModelSerializer):
     """
-    Talaba ma'lumotlarini serializer qilish uchun ishlatiladi.
+    Talaba ma'lumotlarini serializer qilish uchun ishlatiladi
     """
-    phone = serializers.CharField(source="user.phone", read_only=True)
     full_name = serializers.CharField(source="user.full_name", read_only=True)
+    phone = serializers.CharField(source="user.phone", read_only=True)
 
     class Meta:
         model = Student
-        fields = ['id', 'phone', 'full_name', 'group', 'course', 'created', 'updated', 'descriptions']
+        fields = ("id", "user", "full_name", "phone", "group", "course", "created", "updated", "descriptions")
 
 
 class ParentsSerializer(serializers.ModelSerializer):
     """
-    Talabaning ota-onasi yoki vasiylari haqida ma'lumotlarni serializer qilish uchun ishlatiladi.
+    Talabaning ota-onasi yoki vasiylari haqida ma'lumotlarni serializer qilish uchun ishlatiladi
     """
     student_name = serializers.CharField(source="student.user.full_name", read_only=True)
     student_phone = serializers.CharField(source="student.user.phone", read_only=True)
 
     class Meta:
         model = Parents
-        fields = ['id', 'full_name', 'phone_number', 'address', 'descriptions', 'student', 'student_name',
-                  'student_phone']
+        fields = (
+            "id", "full_name", "phone_number", "address", "descriptions", "student", "student_name", "student_phone"
+        )
 
 
 class GetStudentsByIdsSerializer(serializers.Serializer):
-    """ Faqat ID lar orqali talabalarni olish uchun serializer """
+    """
+    Faqat ID lar orqali talabalarni olish uchun serializer
+    """
     student_ids = serializers.ListField(
         child=serializers.IntegerField(),
         required=True
@@ -66,12 +93,13 @@ class GetStudentsByIdsSerializer(serializers.Serializer):
         return value
 
     def get_students(self):
-        students = Student.objects.filter(id__in=self.validated_data['student_ids'])
-        return students
+        return Student.objects.filter(id__in=self.validated_data['student_ids'])
 
 
 class GetTeachersByIdsSerializer(serializers.Serializer):
-    """ Faqat ID lar orqali o‘qituvchilarni olish uchun serializer """
+    """
+    Faqat ID lar orqali o‘qituvchilarni olish uchun serializer
+    """
     teacher_ids = serializers.ListField(
         child=serializers.IntegerField(),
         required=True
@@ -83,21 +111,20 @@ class GetTeachersByIdsSerializer(serializers.Serializer):
         return value
 
     def get_teachers(self):
-        teachers = Teacher.objects.filter(id__in=self.validated_data['teacher_ids'])
-        return teachers
+        return Teacher.objects.filter(id__in=self.validated_data['teacher_ids'])
 
 
 class UserAndTeacherSerializer(serializers.Serializer):
     """
-    Foydalanuvchi va unga bog‘liq o‘qituvchi ma'lumotlarini serializer qilish uchun ishlatiladi.
+    Foydalanuvchi va unga bog‘liq o‘qituvchi ma'lumotlarini serializer qilish uchun ishlatiladi
     """
     user = UserSerializer()
-    worker = TeacherSerializer()
+    teacher = TeacherSerializer()
 
 
 class UserAndStudentSerializer(serializers.Serializer):
     """
-    Foydalanuvchi va unga bog‘liq talaba ma'lumotlarini serializer qilish uchun ishlatiladi.
+    Foydalanuvchi va unga bog‘liq talaba ma'lumotlarini serializer qilish uchun ishlatiladi
     """
     user = UserSerializer()
-    worker = StudentSerializer()
+    student = StudentSerializer()

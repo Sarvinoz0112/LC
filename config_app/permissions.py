@@ -1,27 +1,35 @@
 from rest_framework import permissions
-from rest_framework.permissions import BasePermission
 
-class AdminUser(permissions.BasePermission):
+class IsAdmin(permissions.BasePermission):
+    """ Faqat admin foydalanuvchilar ruxsat olishi mumkin """
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.is_admin or request.user.is_staff
+        return request.user.is_authenticated and request.user.is_superuser
 
-class StudentUser(BasePermission):
+
+class IsTeacher(permissions.BasePermission):
+    """ Faqat Teachers guruhidagi foydalanuvchilar ruxsat olishi mumkin """
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.is_student
+        return request.user.is_authenticated and request.user.groups.filter(name='Teachers').exists()
+
+
+class IsStudent(permissions.BasePermission):
+    """ Faqat Students guruhidagi foydalanuvchilar ruxsat olishi mumkin """
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.groups.filter(name='Students').exists()
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
-    """
-    Faqat adminlar kurs yaratishi, o‘zgartirishi va o‘chira olishi mumkin
-    Oddiy foydalanuvchilar faqat ko‘rish (GET) huquqiga ega
-    """
-
+    """ Adminlar yaratishi va o‘zgartirishi mumkin, boshqa foydalanuvchilar faqat GET so‘rovini yuborishi mumkin """
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
-        return request.user and request.user.is_staff
+        return request.user.is_authenticated and request.user.is_superuser
 
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return request.user and request.user.is_staff
+
+class AdminOrTeacher(permissions.BasePermission):
+    """ Faqat adminlar va o‘qituvchilar attendance qo‘shishi va o‘zgartirishi mumkin """
+
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and (
+                request.user.is_superuser or request.user.groups.filter(name='Teachers').exists()
+        )

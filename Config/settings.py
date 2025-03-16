@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_extensions',
 
     #local apps
+    'attendance_app',
     'config_app',
     'courses_app',
     'users_app',
