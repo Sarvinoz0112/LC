@@ -5,7 +5,6 @@ from .views import (
     HomeworkViewSet, HomeworkSubmissionViewSet, HomeworkCheckViewSet
 )
 
-# DRF uchun
 router = DefaultRouter()
 router.register(r'courses', CourseViewSet, basename='course')
 router.register(r'groups', GroupViewSet, basename='group')
@@ -19,5 +18,5 @@ router.register(r'homework-checks', HomeworkCheckViewSet, basename='homework-che
 app_name = 'courses'
 
 urlpatterns = [
-    path('', include(router.urls)),  # DRF router bilan avtomatik URL-lar
+    path('', include(router.urls)),
 ]

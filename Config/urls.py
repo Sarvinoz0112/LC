@@ -24,6 +24,8 @@ urlpatterns = [
     path('api/v1/users/', include(('users_app.urls', 'users'), namespace='users')),
     path('api/v1/courses/', include(('courses_app.urls', 'courses'), namespace='courses')),
     path('api/v1/attendances/', include(('attendance_app.urls', 'attendance'), namespace='attendances')),
+    path('api/v1/payments/', include(('payments_app.urls', 'payments'), namespace='payments')),
+    path('api/v1/statistics/', include(('statistics_app.urls', 'statistics'), namespace='statistics')),
 
     # Swagger URL-larini to‘g‘ri yozamiz
     path('swagger.<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),

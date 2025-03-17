@@ -47,7 +47,9 @@ INSTALLED_APPS = [
     #local apps
     'attendance_app',
     'config_app',
+    'payments_app',
     'courses_app',
+    'statistics_app',
     'users_app',
 ]
 

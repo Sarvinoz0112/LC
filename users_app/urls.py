@@ -2,7 +2,6 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from users_app.views import UserViewSet, TeacherViewSet, StudentViewSet, ParentsViewSet, CreateSuperAdminView
 
-# Router
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
 router.register(r'teachers', TeacherViewSet, basename='teacher')
