@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from config_app.permissions import IsAdmin
 
-from courses_app.models import Course
+from users_app.models import Student
 from .serializers import DateIntervalSerializer
 
 
@@ -27,13 +27,14 @@ class StudentStatisticsView(APIView):
         start_date = make_aware(datetime.combine(start_date, datetime.min.time()))
         end_date = make_aware(datetime.combine(end_date, datetime.max.time()))
 
-        course_statistics = (
-            Course.objects.annotate(
-                registered_count=Count("c_student", filter=Q(c_student__created_at__range=[start_date, end_date])),
-                studying_count=Count("c_student", filter=Q(c_student__group__active=True, c_student__created_at__range=[start_date, end_date])),
-                graduated_count=Count("c_student", filter=Q(c_student__group__active=False, c_student__created_at__range=[start_date, end_date])),
-                failed_count=Count("c_student", filter=Q(~Q(c_student__group__active=True) & ~Q(c_student__group__active=False), c_student__created_at__range=[start_date, end_date]))
-            ).values("title", "registered_count", "studying_count", "graduated_count", "failed_count")
-        )
+        total_students = Student.objects.count()
+        graduated_students = Student.objects.filter(group__active=False, created_at__range=[start_date, end_date]).count()
+        studying_students = Student.objects.filter(group__active=True, created_at__range=[start_date, end_date]).count()
+        registered_students = Student.objects.filter(created_at__range=[start_date, end_date]).count()
 
-        return Response(course_statistics, status=status.HTTP_200_OK)
+        return Response({
+            "total_students": total_students,
+            "registered_students": registered_students,
+            "studying_students": studying_students,
+            "graduated_students": graduated_students,
+        }, status=status.HTTP_200_OK)

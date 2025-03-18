@@ -7,6 +7,9 @@ class Course(models.Model):
     title = models.CharField(max_length=50)
     descriptions = models.CharField(max_length=500, null=True, blank=True)
 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return self.title
 
@@ -16,8 +19,9 @@ class Group(models.Model):
     name = models.CharField(max_length=255, unique=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="groups")
     teachers = models.ManyToManyField('users_app.Teacher', related_name="teaching_groups")
-    students = models.ManyToManyField('users_app.Student', related_name="student_groups")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -27,6 +31,9 @@ class TableType(models.Model):
     """ Jadval turlari modeli (Exam, Lecture, Practice) """
     name = models.CharField(max_length=100, unique=True)
     descriptions = models.CharField(max_length=500, null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -38,6 +45,7 @@ class Table(models.Model):
     description = models.TextField(blank=True, null=True)
     table_type = models.ForeignKey(TableType, on_delete=models.CASCADE, related_name="tables")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey('users_app.User', on_delete=models.CASCADE, related_name="created_tables")
 
     def __str__(self):
@@ -57,6 +65,8 @@ class Homework(models.Model):
     deadline = models.DateTimeField()
     table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name="homeworks")
     created_by = models.ForeignKey('users_app.Teacher', on_delete=models.CASCADE, related_name="created_homeworks")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.title} - {self.table.title}"
@@ -75,6 +85,9 @@ class HomeworkSubmission(models.Model):
     file = models.FileField(upload_to="homework_submissions/")
     submitted_at = models.DateTimeField(auto_now_add=True)
 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return f"{self.student.get_full_name()} - {self.homework.title}"
 
@@ -92,6 +105,9 @@ class HomeworkCheck(models.Model):
     feedback = models.TextField()
     degree = models.PositiveIntegerField()
     checked_at = models.DateTimeField(auto_now_add=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Checked by {self.checked_by.user.username} - {self.submission.homework.title}"
