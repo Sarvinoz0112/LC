@@ -24,12 +24,16 @@ class StudentStatisticsView(APIView):
         start_date = serializer.validated_data['start_date']
         end_date = serializer.validated_data['end_date']
 
+        """ Sana va vaqt obyektlarini timezone-aware formatga o'tkazish """
         start_date = make_aware(datetime.combine(start_date, datetime.min.time()))
         end_date = make_aware(datetime.combine(end_date, datetime.max.time()))
 
         total_students = Student.objects.count()
+        """ Bitirgan talabalar soni (faol bo‘lmagan guruhda va sanalar oralig‘ida) """
         graduated_students = Student.objects.filter(group__active=False, created_at__range=[start_date, end_date]).count()
+        """ Hozirda o‘qiyotgan talabalar soni (faol guruhda va sanalar oralig‘ida) """
         studying_students = Student.objects.filter(group__active=True, created_at__range=[start_date, end_date]).count()
+        """ Belgilangan sanalar oralig‘ida ro‘yxatdan o‘tgan talabalar soni """
         registered_students = Student.objects.filter(created_at__range=[start_date, end_date]).count()
 
         return Response({
