@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'config_app',
     'payments_app',
     'courses_app',
+    'auth_app',
     'statistics_app',
     'users_app',
 ]
@@ -162,4 +163,16 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
+}
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'Enter JWT token like this: Bearer <your-token>',
+        }
+    },
+    'USE_SESSION_AUTH': False,  # Session auth ni o‘chirib qo‘yish (faqat token ishlatish)
 }

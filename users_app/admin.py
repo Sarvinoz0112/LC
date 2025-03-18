@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from users_app.models import User, Teacher, Student, Parents
+
+admin.site.register([User,Teacher,Student,Parents])
